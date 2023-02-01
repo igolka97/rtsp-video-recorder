@@ -109,16 +109,13 @@ export default class Recorder implements IRecorder {
 			this.process = spawn(this.ffmpegBinary,
 				[
 					'-rtsp_transport', 'tcp',
+					'-y',
 					'-i', this.uri,
-					'-reset_timestamps', '1',
 					...(this.title ? ['-metadata', `title="${this.title}"`] : []),
 					...(this.noAudio ? ['-an'] : ['-c:a', 'aac']),
-					'-strftime', '1',
-					'-strftime_mkdir', '1',
-					'-hls_time', String(this.segmentTime),
-					'-hls_list_size', '0',
-					'-hls_segment_filename', `${this.filePattern}.mp4`,
-					`./${this.playlistName}.m3u8`,
+					'-pix_fmt', 'yuv420p',
+					'-movflags', '+faststart',
+					`./${this.title}.mp4`
 				],
 				{
 					detached: false,
@@ -155,14 +152,14 @@ export default class Recorder implements IRecorder {
 	};
 
 	private matchStarted = (message: string) => {
-		const pattern = new RegExp('Output #0, hls, to \'./(?<file>(:?.+).m3u8)\':');
+		const pattern = new RegExp('Output #0, mp4, to \'./(?<file>(:?.+).mp4)\':');
 		return message.match(pattern)?.groups?.file;
 	};
 
 	private matchFileCreated = (message: string) => {
 		const pattern = new RegExp('Opening \'(?<file>.+)\' for writing');
 		const file = message.match(pattern)?.groups?.file || false;
-		const segment = file && !file.match(/\.m3u8\.tmp$/u);
+		const segment = file && !file.match(/\.mp4\.tmp$/u);
 		return segment ? file : undefined;
 	};
 
