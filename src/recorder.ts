@@ -163,6 +163,11 @@ export default class Recorder implements IRecorder {
 		return segment ? file : undefined;
 	};
 
+	private matchConnectionRefused = (message: string) => {
+		const pattern = new RegExp('Connection refused');
+		return message.match(pattern) || false;
+	};
+
 	private onProgress = (message: string) => {
 		const playlist = this.matchStarted(message);
 		if (playlist) {
@@ -177,6 +182,12 @@ export default class Recorder implements IRecorder {
 				noAudio: this.noAudio,
 				ffmpegBinary: this.ffmpegBinary,
 			});
+		}
+
+		const noConnection = this.matchConnectionRefused(message);
+		if (noConnection) {
+			this.eventEmitter.emit(Events.ERROR, new RecorderError(`Connection to RTSP stream refused. Is ${this.uri} available in your network?`));
+			this.eventEmitter.removeListener(Events.PROGRESS, this.onProgress);
 		}
 
 		const file = this.matchFileCreated(message);
