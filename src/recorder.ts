@@ -111,7 +111,7 @@ export default class Recorder implements IRecorder {
 				'-i', this.uri,
 				...(this.title ? ['-metadata', `title="${this.title}"`] : []),
 				...(this.noAudio ? ['-an'] : ['-c:a', 'aac']),
-				'-y', ' ',
+				'-n',
 				'-pix_fmt', 'yuv420p',
 				'-movflags', '+faststart',
 				`./${this.title}.mp4`
