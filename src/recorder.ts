@@ -109,10 +109,10 @@ export default class Recorder implements IRecorder {
 			this.process = spawn(this.ffmpegBinary,
 				[
 					'-rtsp_transport', 'tcp',
-					'-y',
 					'-i', this.uri,
 					...(this.title ? ['-metadata', `title="${this.title}"`] : []),
 					...(this.noAudio ? ['-an'] : ['-c:a', 'aac']),
+					'-y',
 					'-pix_fmt', 'yuv420p',
 					'-movflags', '+faststart',
 					`./${this.title}.mp4`
