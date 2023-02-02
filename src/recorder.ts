@@ -106,22 +106,25 @@ export default class Recorder implements IRecorder {
 				.on(Events.SPACE_FULL, this.onSpaceFull)
 				.on(Events.STOPPED, this.onStopped);
 
+			const args = [
+				'-rtsp_transport', 'tcp',
+				'-i', this.uri,
+				...(this.title ? ['-metadata', `title="${this.title}"`] : []),
+				...(this.noAudio ? ['-an'] : ['-c:a', 'aac']),
+				'-y', ' ',
+				'-pix_fmt', 'yuv420p',
+				'-movflags', '+faststart',
+				`./${this.title}.mp4`
+			];
 			this.process = spawn(this.ffmpegBinary,
-				[
-					'-rtsp_transport', 'tcp',
-					'-i', this.uri,
-					...(this.title ? ['-metadata', `title="${this.title}"`] : []),
-					...(this.noAudio ? ['-an'] : ['-c:a', 'aac']),
-					'-y',
-					'-pix_fmt', 'yuv420p',
-					'-movflags', '+faststart',
-					`./${this.title}.mp4`
-				],
+				args,
 				{
 					detached: false,
 					cwd: this.destination,
 				},
 			);
+
+			console.log('ffmpeg', args.join());
 
 			this.process.stderr.on('data', (buffer: Buffer) => {
 				const message = buffer.toString();
@@ -153,6 +156,7 @@ export default class Recorder implements IRecorder {
 
 	private matchStarted = (message: string) => {
 		const pattern = new RegExp('Output #0, mp4, to \'./(?<file>(:?.+).mp4)\':');
+		//Output #0, mp4, to '1675
 		return message.match(pattern)?.groups?.file;
 	};
 
